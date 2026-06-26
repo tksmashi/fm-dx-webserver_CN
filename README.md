@@ -1,58 +1,101 @@
-# FM-DX Webserver 📻🌐
+# FM-DX Webserver 中文版 📻🌐
 
-FM-DX Webserver is a cross-platform web server designed for FM DXers who want to control their radio receiver through a web interface.
+本项目是基于 [FM-DX Webserver](https://github.com/NoobishSVK/fm-dx-webserver)（作者：NoobishSVK @ FMDX.org）的中文增强版本。
 
-## Supported devices
+## 与原项目的关系
 
-- **TEF668x:** Supported with PE5PVB's and Konrad's FM-DX Tuner firmware, Arduino versions with other firmwares should work too.
-- **XDR F1HD:** Officially supported, works best with Konrad's FM-DX Tuner firmware.
-- **SDR (AirSpy / RTL-SDR):** Supported **unofficially** via SDRSharp and the XDR-GTK plugin.
+- **上游项目**: https://github.com/NoobishSVK/fm-dx-webserver
+- **原项目许可**: GNU-GPL v3
+- **本仓库**: 同步上游源码，附加中文语言插件
+- **差异**: 仅新增 `plugins/language_zh/` 插件目录及相关文档，未修改任何上游核心代码
 
-## Features
+## 新增功能：中文语言插件
 
-- **Cross-platform support:**
-  - Linux
-  - macOS
-  - Windows
+本仓库内置了 `Chinese Language Pack (中文语言包)` 插件，启用后 Web 界面自动显示简体中文，覆盖主仪表板和设置面板的全部页面。
 
-- **Web-Based Control:** Access and control your receiver from any device with a web browser.
-- **Low-latency streaming**: Built in directly into the webserver, no external apps needed for users.
+### 启动步骤
 
-- **Plugin-support**: See our wiki for summary of available [plugins](https://github.com/NoobishSVK/fm-dx-webserver/wiki/Plugin-List).
-- **FM DXing:** Enhance your FM/AM DXing experience with a user-friendly web interface.
+#### 1. 安装依赖
 
-## Getting Started
+```bash
+npm install
+```
 
-- [Linux installation](https://github.com/NoobishSVK/fm-dx-webserver/wiki/Linux-Installation)
-- [macOS installation](https://github.com/NoobishSVK/fm-dx-webserver/wiki/macOS-Installation)
-- [Windows installation](https://github.com/NoobishSVK/fm-dx-webserver/wiki/Windows-Installation)
+> 国内用户建议先切换镜像源：`npm config set registry https://registry.npmmirror.com`
 
-## Utilized projects
+#### 2. 首次启动（生成配置文件）
 
-This project utilizes these libraries:
+```bash
+node index.js
+```
 
-- [3LAS](https://github.com/jojobond/3LAS) library by JoJoBond for Low Latency Audio Streaming.
-- [flat-flags](https://github.com/luishdez/flat-flags) library by luishdez for RDS country flags.
-- [librdsparser](https://github.com/kkonradpl/librdsparser) library by Konrad Kosmatka for RDS parsing.
+首次运行会在项目根目录生成 `config.json`。启动成功后按 `Ctrl+C` 停止。
 
-All of these libraries are already bundled with the webserver.
+#### 3. 启用中文插件
 
-## Features to be added
+编辑 `config.json`，找到 `"plugins"` 字段，添加 `"language_zh.js"`：
 
-Check [here](https://trello.com/b/OAKo7n0Q/fm-dx-webserver) for an up to date task list.
+```json
+"plugins": ["language_zh.js"]
+```
 
-## Community
+同时建议设置一个管理员密码（首次设置时需要）：
 
-Join our **Discord community** to get the latest development update info, share feedback and receive support.
-[<img alt="Join the OpenRadio Discord community!" src="https://i.imgur.com/lI9Tuxf.png" height="120">](https://discord.gg/ZAVNdS74mC)  
+```json
+"password": {
+    "adminPass": "你的密码"
+}
+```
 
-## Contributing
+> Windows 用户如遇端口 8080 被占用，可在 `config.json` 中将 `webserverPort` 改为其他端口（如 `3000`）。
 
-Feel free to contribute to the project by opening issues or submitting pull requests. Your input is valuable!
+#### 4. 重新启动
 
-## License
+```bash
+node index.js
+```
 
-This project is licensed under the [GNU-GPL v3 License](LICENSE.md).
-Always check with your country's laws before hosting a webserver.
+浏览器访问 `http://localhost:3000`（或你配置的端口），即可看到中文界面。
+
+### 设置页面
+
+访问 `http://localhost:3000/setup`，使用上一步设置的管理员密码登录，可进入完整的设置面板。
+
+### 插件结构
+
+```
+plugins/
+├── language_zh.js              # 插件入口（配置导出 + 动态加载器）
+├── language_zh_server.js       # 服务端：Accept-Language 请求头检测
+└── language_zh/
+    ├── frontend.js             # 核心翻译引擎（~280 条翻译映射）
+    └── zh-CN.json              # 翻译参考字典（模块化整理）
+```
+
+### 翻译覆盖率
+
+| 页面 | 状态 |
+|------|:--:|
+| 主仪表板 `/` | ✅ |
+| 设置面板 `/setup`（9 个标签页） | ✅ |
+| 设置向导 `/wizard` | ❌（上游模板未加载插件脚本） |
+| 登录页 | ❌（上游模板未加载插件脚本） |
+| 403 封禁页 `/403` | ❌（上游模板未加载插件脚本） |
+
+### 创建其他语言包
+
+1. 复制 `plugins/language_zh/` → `plugins/language_xx/`
+2. 翻译 `frontend.js` 中的翻译字典
+3. 创建 `plugins/language_xx.js` 入口文件
+4. 创建 `plugins/language_xx_server.js`
+5. 在 `config.json` 的 `plugins` 中添加 `"language_xx.js"`
+
+## 社区
+
+欢迎加入 FMDX.org 社区的 [Discord](https://discord.gg/ZAVNdS74mC) 交流讨论。
+
+## 许可
+
+本项目遵循与原项目相同的 [GNU-GPL v3 License](LICENSE.md)。请遵守当地法规托管服务器。
 
 Happy DXing! 🎶📡
